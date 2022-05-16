@@ -30,7 +30,7 @@ func (c *ReplicaClient) handleMessage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	c.PublishEventAsync(MessageReceiveEventType, map[string]string{
-		"message_id": message.ID,
+		"message_id": string(message.ID),
 	})
 	c.messageQ.Add(message)
 	fmt.Fprintf(w, "Ok!")

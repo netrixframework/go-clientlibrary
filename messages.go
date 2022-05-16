@@ -129,7 +129,7 @@ func (c *ReplicaClient) SendMessage(t string, to types.ReplicaID, msg []byte, in
 		Type:      t,
 		From:      from,
 		To:        to,
-		ID:        c.counter.NextID(from, to),
+		ID:        types.MessageID(c.counter.NextID(from, to)),
 		Data:      msg,
 		Intercept: intercept,
 	}
@@ -141,7 +141,7 @@ func (c *ReplicaClient) SendMessage(t string, to types.ReplicaID, msg []byte, in
 		return err
 	}
 	c.PublishEventAsync(MessageSendEventType, map[string]string{
-		"message_id": message.ID,
+		"message_id": string(message.ID),
 	})
 	return nil
 }
