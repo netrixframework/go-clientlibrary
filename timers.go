@@ -35,11 +35,16 @@ func newTimer() *timer {
 	}
 }
 
-func (t *timer) AddTimeout(info TimeoutInfo) {
+func (t *timer) AddTimeout(info TimeoutInfo) bool {
 	t.lock.Lock()
 	defer t.lock.Unlock()
-
-	t.timeouts[info.Key()] = info
+	key := info.Key()
+	_, ok := t.timeouts[key]
+	if !ok {
+		t.timeouts[key] = info
+		return true
+	}
+	return false
 }
 
 func (t *timer) FireTimeout(key string) {
@@ -59,11 +64,12 @@ func (t *timer) FireTimeout(key string) {
 // testing strategy. If you do not want to instrument timers as message send/receives then do not use this function.
 func (c *ReplicaClient) StartTimer(i TimeoutInfo) {
 	c.logger.Info("Starting timer", "type", i.Key(), "duration", i.Duration().String())
-	c.timer.AddTimeout(i)
-	c.PublishEvent(TimeoutStartEventType, map[string]string{
-		"type":     i.Key(),
-		"duration": i.Duration().String(),
-	})
+	if c.timer.AddTimeout(i) {
+		c.PublishEvent(TimeoutStartEventType, map[string]string{
+			"type":     i.Key(),
+			"duration": i.Duration().String(),
+		})
+	}
 }
 
 // TimeoutChan returns the channel on which timeouts are delivered.
