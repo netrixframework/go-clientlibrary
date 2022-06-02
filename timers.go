@@ -65,6 +65,10 @@ func (t *timer) FireTimeout(key string) {
 func (c *ReplicaClient) StartTimer(i TimeoutInfo) {
 	c.logger.Info("Starting timer", "type", i.Key(), "duration", i.Duration().String())
 	if c.timer.AddTimeout(i) {
+		duration := i.Duration()
+		if duration < 0 {
+			duration = time.Duration(0)
+		}
 		c.PublishEvent(TimeoutStartEventType, map[string]string{
 			"type":     i.Key(),
 			"duration": i.Duration().String(),
