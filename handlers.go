@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	"github.com/netrixframework/netrix/types"
 )
@@ -96,9 +97,13 @@ func (c *ReplicaClient) handleTimeout(w http.ResponseWriter, r *http.Request) {
 	}
 	c.logger.Info("Ending timeout", "type", t.Type, "duration", t.Duration)
 	c.timer.FireTimeout(t.Type)
+	duration, _ := time.ParseDuration(t.Duration)
+	if duration < 0 {
+		duration = time.Duration(0)
+	}
 	c.PublishEventAsync(TimeoutEndEventType, map[string]string{
 		"type":     t.Type,
-		"duration": t.Duration,
+		"duration": duration.String(),
 	})
 	fmt.Fprintf(w, "Ok")
 }
