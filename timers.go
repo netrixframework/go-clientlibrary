@@ -71,7 +71,7 @@ func (c *ReplicaClient) StartTimer(i TimeoutInfo) {
 		}
 		c.PublishEvent(TimeoutStartEventType, map[string]string{
 			"type":     i.Key(),
-			"duration": i.Duration().String(),
+			"duration": duration.String(),
 		})
 	}
 }
