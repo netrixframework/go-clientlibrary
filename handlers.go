@@ -62,8 +62,11 @@ func (c *ReplicaClient) handleDirective(w http.ResponseWriter, r *http.Request) 
 		err = c.directiveHandler.Stop()
 	case restartAction:
 		c.unsetReady()
+		c.messageQ.Block()
 		err = c.directiveHandler.Restart()
+		c.messageQ.Flush()
 		c.Ready()
+		c.messageQ.UnBlock()
 	case isReadyAction:
 		if !c.IsReady() {
 			err = errors.New("replica not ready")

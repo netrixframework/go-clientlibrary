@@ -15,6 +15,7 @@ type MessageQueue struct {
 	messages []*types.Message
 	lock     *sync.Mutex
 	size     int
+	block    bool
 }
 
 // NewMessageQueue returns an empty MessageQueue
@@ -22,6 +23,7 @@ func NewMessageQueue() *MessageQueue {
 	return &MessageQueue{
 		messages: make([]*types.Message, 0),
 		size:     0,
+		block:    false,
 		lock:     new(sync.Mutex),
 	}
 }
@@ -43,6 +45,9 @@ func (q *MessageQueue) Add(m *types.Message) {
 	q.lock.Lock()
 	defer q.lock.Unlock()
 
+	if q.block {
+		return
+	}
 	q.messages = append(q.messages, m)
 	q.size = q.size + 1
 }
@@ -54,6 +59,22 @@ func (q *MessageQueue) Flush() {
 
 	q.messages = make([]*types.Message, 0)
 	q.size = 0
+}
+
+// Block ignores additions to the message queue
+func (q *MessageQueue) Block() {
+	q.lock.Lock()
+	defer q.lock.Unlock()
+
+	q.block = true
+}
+
+// UnBlock stops blocking
+func (q *MessageQueue) UnBlock() {
+	q.lock.Lock()
+	defer q.lock.Unlock()
+
+	q.block = false
 }
 
 type masterRequest struct {

@@ -15,7 +15,7 @@ var client *ReplicaClient = nil
 var (
 	ErrNoReplicaID        = errors.New("replica ID config should not be empty")
 	ErrNoClientServerAddr = errors.New("client server address should not be empty")
-	ErrNoNetrixAddr       = errors.New("Netrix addr should not be empty")
+	ErrNoNetrixAddr       = errors.New("netrix addr should not be empty")
 )
 
 type Config struct {
