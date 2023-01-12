@@ -167,6 +167,41 @@ func (c *ReplicaClient) SendMessage(t string, to types.ReplicaID, msg []byte, in
 	return nil
 }
 
+func (c *ReplicaClient) SendMessageWithID(
+	id string, t string, to types.ReplicaID,
+	msg []byte,
+) error {
+	select {
+	case <-c.stopCh:
+		return errors.New("controller stopped. EOF")
+	default:
+	}
+
+	if !c.IsReady() {
+		return nil
+	}
+	from := c.config.ReplicaID
+	message := &types.Message{
+		Type:      t,
+		From:      from,
+		To:        to,
+		ID:        types.MessageID(id),
+		Data:      msg,
+		Intercept: true,
+	}
+	err := c.sendMasterMessage(&masterRequest{
+		Type:    "InterceptedMessage",
+		Message: message,
+	})
+	if err != nil {
+		return err
+	}
+	c.PublishEventAsync(MessageSendEventType, map[string]string{
+		"message_id": string(message.ID),
+	})
+	return nil
+}
+
 func (c *ReplicaClient) ReceiveMessage() (*types.Message, bool) {
 	return c.messageQ.Pop()
 }
